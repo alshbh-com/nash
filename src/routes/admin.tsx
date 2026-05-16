@@ -9,10 +9,11 @@ export const Route = createFileRoute("/admin")({
 });
 
 const ADMIN_EMAIL = "admin@naseh.store";
+const DEFAULT_ADMIN_PASSWORD = "01278006248";
 
 function AdminLogin() {
   const navigate = useNavigate();
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
