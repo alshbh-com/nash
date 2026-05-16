@@ -87,21 +87,27 @@ export function isAdminPassword(password: string) {
 export async function createAdminSession() {
   const admin = await ensureAdminAccount();
   const expiresAt = Date.now() + ADMIN_SESSION_MAX_AGE * 1000;
-  await updateSession<AdminSession>(sessionConfig(), {
+  const session: AdminSession = {
     userId: admin.userId,
     email: admin.email,
     expiresAt,
     ip: getRequestIP({ xForwardedFor: true }),
+  };
+  setCookie(ADMIN_COOKIE_NAME, encodeSession(session), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: ADMIN_SESSION_MAX_AGE,
   });
   return { ok: true, email: admin.email, expiresAt };
 }
 
 export async function readAdminSession() {
-  const session = await getSession<AdminSession>(sessionConfig());
-  const data = session.data;
+  const data = decodeSession(getCookie(ADMIN_COOKIE_NAME));
 
   if (!data?.userId || !data.expiresAt || data.expiresAt < Date.now()) {
-    await clearSession(sessionConfig());
+    clearCookie();
     return { authed: false as const };
   }
 
@@ -113,7 +119,7 @@ export async function readAdminSession() {
     .maybeSingle();
 
   if (error || !role) {
-    await clearSession(sessionConfig());
+    clearCookie();
     return { authed: false as const };
   }
 
@@ -121,6 +127,6 @@ export async function readAdminSession() {
 }
 
 export async function clearAdminSession() {
-  await clearSession(sessionConfig());
+  clearCookie();
   return { ok: true };
 }
