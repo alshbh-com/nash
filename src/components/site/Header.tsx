@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Heart, Search } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
+import { useCart } from "@/contexts/cart";
 
 export function Header() {
+  const { count } = useCart();
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-cream/80 border-b border-border/50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -16,23 +18,21 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
-          <Link to="/" className="hover:text-pink transition-colors">الرئيسية</Link>
-          <a href="#categories" className="hover:text-pink transition-colors">الأقسام</a>
-          <a href="#products" className="hover:text-pink transition-colors">المنتجات</a>
-          <a href="#why" className="hover:text-pink transition-colors">ليه إحنا؟</a>
+          <Link to="/" activeOptions={{ exact: true }} activeProps={{ className: "text-pink" }} className="hover:text-pink transition-colors">الرئيسية</Link>
+          <Link to="/category/$slug" params={{ slug: "girls" }} className="hover:text-pink transition-colors">بنات</Link>
+          <Link to="/category/$slug" params={{ slug: "boys" }} className="hover:text-pink transition-colors">أولاد</Link>
+          <Link to="/category/$slug" params={{ slug: "baby" }} className="hover:text-pink transition-colors">بيبي</Link>
         </nav>
 
         <div className="flex items-center gap-2">
-          <button className="w-10 h-10 rounded-full hover:bg-muted flex items-center justify-center transition-colors" aria-label="بحث">
-            <Search className="w-5 h-5" />
-          </button>
-          <button className="w-10 h-10 rounded-full hover:bg-muted flex items-center justify-center transition-colors" aria-label="المفضلة">
-            <Heart className="w-5 h-5" />
-          </button>
-          <button className="relative w-10 h-10 rounded-full bg-gradient-pink hover:scale-110 transition-transform flex items-center justify-center shadow-soft" aria-label="السلة">
+          <Link to="/cart" className="relative w-11 h-11 rounded-full bg-gradient-pink hover:scale-110 transition-transform flex items-center justify-center shadow-soft" aria-label="السلة">
             <ShoppingBag className="w-5 h-5 text-navy" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-navy text-white text-[10px] font-bold flex items-center justify-center">0</span>
-          </button>
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-navy text-white text-[10px] font-bold flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
     </header>

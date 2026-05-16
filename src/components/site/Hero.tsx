@@ -31,6 +31,7 @@ export function Hero() {
               تصفحي الأقسام
             </a>
           </div>
+
           <div className="flex gap-6 justify-center md:justify-start pt-4 text-sm">
             <div><span className="text-2xl font-bold text-pink">15+</span><div className="text-muted-foreground">يوم استبدال</div></div>
             <div><span className="text-2xl font-bold text-sky">100%</span><div className="text-muted-foreground">قطن آمن</div></div>
