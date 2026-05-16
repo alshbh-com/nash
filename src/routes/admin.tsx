@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { getAdminSession, logoutAdmin } from "@/lib/admin-auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, ShoppingCart, Package, Truck, LogOut, Menu, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -36,8 +37,20 @@ function AdminLayout() {
         if (cancelled) return;
         if (session.authed) setAuthed("yes");
         else {
-          setAuthed("no");
-          navigate({ to: "/admin/login" });
+          const { data: authData } = await supabase.auth.getSession();
+          const userId = authData.session?.user.id;
+          if (!userId) {
+            setAuthed("no");
+            navigate({ to: "/admin/login" });
+            return;
+          }
+          const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+          if (cancelled) return;
+          if (roles?.some((role) => role.role === "admin")) setAuthed("yes");
+          else {
+            setAuthed("no");
+            navigate({ to: "/admin/login" });
+          }
         }
       } catch {
         if (!cancelled) {
@@ -48,9 +61,9 @@ function AdminLayout() {
     };
     check();
     return () => { cancelled = true; };
-  }, [checkAdminSession, isLogin, loc.pathname, navigate]);
+  }, [isLogin, loc.pathname, navigate]);
 
-  const logout = async () => { await clearSession(); setAuthed("no"); navigate({ to: "/admin/login" }); };
+  const logout = async () => { await clearSession(); await supabase.auth.signOut(); setAuthed("no"); navigate({ to: "/admin/login" }); };
 
   if (isLogin) {
     return <div className="min-h-screen bg-background"><Outlet /></div>;
