@@ -294,6 +294,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_admin: { Args: never; Returns: boolean }
       get_order_public: {
         Args: { _order_number: string }
         Returns: {
