@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { ensureAdminUser } from "@/lib/admin-auth.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { loginAdmin } from "@/lib/admin-auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/login")({
@@ -9,11 +9,11 @@ export const Route = createFileRoute("/admin/login")({
   head: () => ({ meta: [{ title: "دخول الأدمن — ناصح" }] }),
 });
 
-const ADMIN_EMAIL = "admin@naseh.store";
 const DEFAULT_ADMIN_PASSWORD = "01278006248";
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const login = useServerFn(loginAdmin);
   const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
   const [busy, setBusy] = useState(false);
 
@@ -22,10 +22,7 @@ function AdminLogin() {
     if (password !== DEFAULT_ADMIN_PASSWORD) { toast.error("كلمة المرور غير صحيحة"); return; }
     setBusy(true);
     try {
-      // Make sure the admin user exists with the right password and role
-      await ensureAdminUser();
-      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
-      if (error) throw new Error("تعذّر تسجيل الدخول، حاول مرة أخرى");
+      await login({ data: { password } });
       toast.success("أهلاً بك 🌟");
       navigate({ to: "/admin" });
     } catch (err) {
