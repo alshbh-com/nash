@@ -17,7 +17,7 @@ function AdminLogin() {
   const navigate = useNavigate();
   const login = useServerFn(loginAdmin);
   const checkSession = useServerFn(getAdminSession);
-  const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
+  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {

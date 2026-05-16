@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtEGP } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, ImagePlus } from "lucide-react";
 
 export const Route = createFileRoute("/admin/products")({ component: ProductsPage });
 
@@ -100,14 +100,29 @@ function ProductForm({ initial, onClose, onSaved }: { initial: ProductRow | null
     gender: initial?.gender ?? "unisex",
     badge: initial?.badge ?? "",
     images: initial?.images ?? [],
-    sizes: initial?.sizes?.join(",") ?? "0-3 شهور,3-6 شهور,6-12 شهور",
-    colors: initial?.colors?.join(",") ?? "#FFB6C1,#B5EAD7",
+    sizes: initial?.sizes ?? [],
+    colors: initial?.colors ?? [],
     short_description: initial?.short_description ?? "",
     description: initial?.description ?? "",
     active: initial?.active ?? true,
   });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [sizeInput, setSizeInput] = useState("");
+  const [colorInput, setColorInput] = useState("#FFB6C1");
+
+  const addSize = () => {
+    const v = sizeInput.trim();
+    if (!v || f.sizes.includes(v)) return;
+    setF((x) => ({ ...x, sizes: [...x.sizes, v] }));
+    setSizeInput("");
+  };
+  const removeSize = (s: string) => setF((x) => ({ ...x, sizes: x.sizes.filter((y) => y !== s) }));
+  const addColor = () => {
+    if (!colorInput || f.colors.includes(colorInput)) return;
+    setF((x) => ({ ...x, colors: [...x.colors, colorInput] }));
+  };
+  const removeColor = (c: string) => setF((x) => ({ ...x, colors: x.colors.filter((y) => y !== c) }));
 
   const uploadFiles = async (files: FileList) => {
     setUploading(true);

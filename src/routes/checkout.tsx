@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/contexts/cart";
-import { fmtEGP, GOVERNORATES } from "@/lib/format";
+import { fmtEGP } from "@/lib/format";
 import { fetchShipping, validateCoupon } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -57,27 +57,18 @@ function CheckoutPage() {
     }
     setSubmitting(true);
     try {
-      const { data: order, error } = await supabase
-        .from("orders")
-        .insert({
-          customer_name: form.name.trim(),
-          phone: form.phone.trim(),
-          governorate: form.governorate,
-          address: form.address.trim(),
-          notes: form.notes.trim() || null,
-          subtotal,
-          shipping_cost: shipping,
-          discount,
-          total,
-          coupon_code: appliedCoupon?.code ?? null,
-        })
-        .select("id, order_number")
-        .single();
-      if (error) throw error;
-
-      const { error: itErr } = await supabase.from("order_items").insert(
-        items.map((it) => ({
-          order_id: order.id,
+      const { data, error } = await supabase.rpc("create_order_with_items", {
+        _customer_name: form.name.trim(),
+        _phone: form.phone.trim(),
+        _governorate: form.governorate,
+        _address: form.address.trim(),
+        _notes: form.notes.trim() || null,
+        _subtotal: subtotal,
+        _shipping_cost: shipping,
+        _discount: discount,
+        _total: total,
+        _coupon_code: appliedCoupon?.code ?? null,
+        _items: items.map((it) => ({
           product_id: it.productId,
           product_name: it.name,
           product_image: it.image,
@@ -85,12 +76,14 @@ function CheckoutPage() {
           color: it.color,
           qty: it.qty,
           unit_price: it.price,
-        }))
-      );
-      if (itErr) throw itErr;
+        })),
+      });
+      if (error) throw error;
+      const orderNumber = Array.isArray(data) ? data[0]?.order_number : (data as { order_number: string } | null)?.order_number;
+      if (!orderNumber) throw new Error("لم يتم إنشاء الطلب");
 
       clear();
-      navigate({ to: "/order/$number", params: { number: order.order_number } });
+      navigate({ to: "/order/$number", params: { number: orderNumber } });
     } catch (err) {
       console.error(err);
       toast.error("حصل خطأ، جرّبي تاني");
@@ -109,11 +102,24 @@ function CheckoutPage() {
           <Field label="رقم الموبايل *" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="01xxxxxxxxx" />
           <div>
             <label className="block text-sm font-bold text-navy mb-1.5">المحافظة *</label>
-            <select required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })}
-              className="w-full px-4 py-3 rounded-2xl border-2 border-border bg-white focus:border-pink outline-none">
-              <option value="">اختر المحافظة</option>
-              {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
+            {rates.length === 0 ? (
+              <div className="px-4 py-3 rounded-2xl border-2 border-dashed border-border bg-muted text-sm text-muted-foreground">
+                لا توجد محافظات متاحة للشحن حالياً
+              </div>
+            ) : (
+              <select required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })}
+                className="w-full px-4 py-3 rounded-2xl border-2 border-border bg-white focus:border-pink outline-none">
+                <option value="">اختر المحافظة</option>
+                {rates.map((r) => (
+                  <option key={r.id} value={r.governorate}>
+                    {r.governorate} — شحن {fmtEGP(Number(r.cost))}
+                  </option>
+                ))}
+              </select>
+            )}
+            {form.governorate && (
+              <div className="text-xs text-muted-foreground mt-1.5">سعر الشحن: {fmtEGP(shipping)}</div>
+            )}
           </div>
           <Field label="العنوان بالتفصيل *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
           <div>
