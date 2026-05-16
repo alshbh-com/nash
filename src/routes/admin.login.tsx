@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminSession, loginAdmin } from "@/lib/admin-auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/login")({
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/admin/login")({
 });
 
 const DEFAULT_ADMIN_PASSWORD = "01278006248";
+const ADMIN_EMAIL = "admin@naseh.store";
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -32,6 +34,7 @@ function AdminLogin() {
     setBusy(true);
     try {
       await login({ data: { password } });
+      await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
       toast.success("أهلاً بك 🌟");
       window.location.assign("/admin");
     } catch (err) {
