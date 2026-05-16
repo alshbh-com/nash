@@ -45,8 +45,8 @@ function ProductPage() {
     : 0;
 
   const handleAdd = (goCheckout = false) => {
-    if (sizes.length && !size) { toast.error("اختاري المقاس أولاً"); return; }
-    if (colors.length && !color) { toast.error("اختاري اللون أولاً"); return; }
+    if (sizes.length && !size) { toast.error("اختر المقاس أولاً"); return; }
+    if (colors.length && !color) { toast.error("اختر اللون أولاً"); return; }
     add({
       productId: product.id,
       name: product.name,
@@ -143,7 +143,7 @@ function ProductPage() {
           <div className="flex flex-wrap gap-3 pt-2">
             <button disabled={product.stock === 0} onClick={() => handleAdd(false)}
               className="flex-1 min-w-40 bg-navy text-white px-6 py-4 rounded-2xl font-bold shadow-soft hover:shadow-hover hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <ShoppingBag className="w-5 h-5" /> أضيفي للسلة
+              <ShoppingBag className="w-5 h-5" /> أضف للسلة
             </button>
             <button disabled={product.stock === 0} onClick={() => handleAdd(true)}
               className="flex-1 min-w-40 bg-gradient-pink text-navy px-6 py-4 rounded-2xl font-bold shadow-soft hover:scale-[1.02] transition-all disabled:opacity-50">

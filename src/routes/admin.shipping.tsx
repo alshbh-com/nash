@@ -25,7 +25,7 @@ function ShippingPage() {
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!gov || !cost) { toast.error("اختاري محافظة وسعر"); return; }
+    if (!gov || !cost) { toast.error("اختر محافظة وسعر"); return; }
     setBusy(true);
     // upsert by governorate
     const existing = rates.find((r) => r.governorate === gov);
@@ -59,7 +59,7 @@ function ShippingPage() {
           <label className="block text-xs font-bold text-navy mb-1">المحافظة</label>
           <select value={gov} onChange={(e) => setGov(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl border-2 border-border bg-white text-sm">
-            <option value="">اختاري المحافظة</option>
+            <option value="">اختر المحافظة</option>
             {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>

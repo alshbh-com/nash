@@ -25,8 +25,8 @@ function AdminLogin() {
       // Make sure the admin user exists with the right password and role
       await ensureAdminUser();
       const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
-      if (error) throw new Error("تعذّر تسجيل الدخول، حاولي مرة أخرى");
-      toast.success("أهلاً بيكي 🌟");
+      if (error) throw new Error("تعذّر تسجيل الدخول، حاول مرة أخرى");
+      toast.success("أهلاً بك 🌟");
       navigate({ to: "/admin" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "حدث خطأ");
@@ -41,7 +41,7 @@ function AdminLogin() {
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">⭐</div>
           <h1 className="text-2xl font-bold text-navy">لوحة تحكم الأدمن</h1>
-          <p className="text-sm text-muted-foreground mt-1">ادخلي كلمة المرور للدخول</p>
+          <p className="text-sm text-muted-foreground mt-1">ادخل كلمة المرور للدخول</p>
         </div>
         <form onSubmit={submit} className="space-y-4">
           <input type="password" required minLength={6} autoFocus value={password}
