@@ -1,9 +1,11 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { clearSession, getRequestIP, getSession, updateSession } from "@tanstack/react-start/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { deleteCookie, getCookie, getRequestIP, setCookie } from "@tanstack/react-start/server";
 
 const ADMIN_EMAIL = "admin@naseh.store";
 const ADMIN_PASSWORD = "01278006248";
 const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+const ADMIN_COOKIE_NAME = "naseh-admin-session";
 
 type AdminSession = {
   userId: string;
@@ -12,22 +14,38 @@ type AdminSession = {
   ip?: string;
 };
 
-function sessionConfig() {
+function cookieSecret() {
   const password = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_DB_URL;
   if (!password || password.length < 32) throw new Error("إعدادات جلسة الأدمن غير مكتملة");
+  return password;
+}
 
-  return {
-    password,
-    name: "naseh-admin-session",
-    maxAge: ADMIN_SESSION_MAX_AGE,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: ADMIN_SESSION_MAX_AGE,
-    },
-  };
+function signPayload(payload: string) {
+  return createHmac("sha256", cookieSecret()).update(payload).digest("base64url");
+}
+
+function encodeSession(data: AdminSession) {
+  const payload = Buffer.from(JSON.stringify(data), "utf8").toString("base64url");
+  return `${payload}.${signPayload(payload)}`;
+}
+
+function decodeSession(value: string | undefined): AdminSession | null {
+  if (!value) return null;
+  const [payload, signature] = value.split(".");
+  if (!payload || !signature) return null;
+  const expected = signPayload(payload);
+  const givenBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (givenBuffer.length !== expectedBuffer.length || !timingSafeEqual(givenBuffer, expectedBuffer)) return null;
+  try {
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as AdminSession;
+  } catch {
+    return null;
+  }
+}
+
+function clearCookie() {
+  deleteCookie(ADMIN_COOKIE_NAME, { path: "/" });
 }
 
 export async function ensureAdminAccount() {
