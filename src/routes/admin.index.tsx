@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   component: AdminLogin,
   head: () => ({ meta: [{ title: "دخول الأدمن — ناصح" }] }),
 });
