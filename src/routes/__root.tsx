@@ -11,7 +11,6 @@ import {
 import { Toaster } from "sonner";
 import { CartProvider } from "@/contexts/cart";
 import { Header } from "@/components/site/Header";
-import { Footer } from "@/components/site/Footer";
 
 import appCss from "../styles.css?url";
 
@@ -77,7 +76,6 @@ function Layout() {
     <>
       {!isAdmin && <Header />}
       <main className="min-h-[60vh]"><Outlet /></main>
-      {!isAdmin && <Footer />}
       <Toaster position="top-center" richColors />
     </>
   );
