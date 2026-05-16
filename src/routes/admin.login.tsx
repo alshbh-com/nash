@@ -34,7 +34,8 @@ function AdminLogin() {
     setBusy(true);
     try {
       await login({ data: { password } });
-      await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      if (error) throw new Error("تعذّر تسجيل دخول الأدمن، حاول مرة أخرى");
       toast.success("أهلاً بك 🌟");
       window.location.assign("/admin");
     } catch (err) {
