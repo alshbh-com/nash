@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getAdminSession, logoutAdmin } from "@/lib/admin-auth.functions";
 import { LayoutDashboard, ShoppingCart, Package, Truck, LogOut, Menu, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -18,29 +19,38 @@ const NAV = [
 function AdminLayout() {
   const navigate = useNavigate();
   const loc = useLocation();
+  const checkAdminSession = useServerFn(getAdminSession);
+  const clearSession = useServerFn(logoutAdmin);
   const [authed, setAuthed] = useState<"loading" | "yes" | "no">("loading");
   const [open, setOpen] = useState(false);
 
   const isLogin = loc.pathname === "/admin/login";
 
   useEffect(() => {
+    if (isLogin) return;
+    let cancelled = false;
     const check = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) { setAuthed("no"); return; }
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-      setAuthed(roles?.some((r) => r.role === "admin") ? "yes" : "no");
+      setAuthed("loading");
+      try {
+        const session = await checkAdminSession();
+        if (cancelled) return;
+        if (session.authed) setAuthed("yes");
+        else {
+          setAuthed("no");
+          navigate({ to: "/admin/login" });
+        }
+      } catch {
+        if (!cancelled) {
+          setAuthed("no");
+          navigate({ to: "/admin/login" });
+        }
+      }
     };
     check();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    return () => { cancelled = true; };
+  }, [checkAdminSession, isLogin, loc.pathname, navigate]);
 
-  useEffect(() => {
-    if (authed === "no" && !isLogin) navigate({ to: "/admin/login" });
-    if (authed === "yes" && isLogin) navigate({ to: "/admin" });
-  }, [authed, isLogin, navigate]);
-
-  const logout = async () => { await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
+  const logout = async () => { await clearSession(); setAuthed("no"); navigate({ to: "/admin/login" }); };
 
   if (isLogin) {
     return <div className="min-h-screen bg-background"><Outlet /></div>;
