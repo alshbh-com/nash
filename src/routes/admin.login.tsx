@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { loginAdmin } from "@/lib/admin-auth.functions";
+import { getAdminSession, loginAdmin } from "@/lib/admin-auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/login")({
@@ -10,12 +11,22 @@ export const Route = createFileRoute("/admin/login")({
 });
 
 const DEFAULT_ADMIN_PASSWORD = "01278006248";
+const ADMIN_EMAIL = "admin@naseh.store";
 
 function AdminLogin() {
   const navigate = useNavigate();
   const login = useServerFn(loginAdmin);
+  const checkSession = useServerFn(getAdminSession);
   const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    checkSession().then((session) => {
+      if (!cancelled && session.authed) navigate({ to: "/admin" });
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [checkSession, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +34,10 @@ function AdminLogin() {
     setBusy(true);
     try {
       await login({ data: { password } });
+      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      if (error) throw new Error("تعذّر تسجيل دخول الأدمن، حاول مرة أخرى");
       toast.success("أهلاً بك 🌟");
-      navigate({ to: "/admin" });
+      window.location.assign("/admin");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "حدث خطأ");
     } finally {
