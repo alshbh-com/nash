@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureAdminUser } from "@/lib/admin-auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/login")({
@@ -18,32 +19,17 @@ function AdminLogin() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error("كلمة المرور 6 أحرف على الأقل"); return; }
+    if (password !== DEFAULT_ADMIN_PASSWORD) { toast.error("كلمة المرور غير صحيحة"); return; }
     setBusy(true);
     try {
-      let { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
-      if (error) {
-        const { error: signUpErr } = await supabase.auth.signUp({
-          email: ADMIN_EMAIL, password,
-          options: { emailRedirectTo: window.location.origin + "/admin" },
-        });
-        if (signUpErr) throw new Error("كلمة المرور غير صحيحة");
-        const retry = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
-        if (retry.error) throw new Error("كلمة المرور غير صحيحة");
-      }
-      await supabase.rpc("bootstrap_admin");
-      const { data: user } = await supabase.auth.getUser();
-      if (user.user) {
-        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.user.id);
-        if (!roles?.some((r) => r.role === "admin")) {
-          await supabase.auth.signOut();
-          throw new Error("كلمة المرور غير صحيحة");
-        }
-      }
+      // Make sure the admin user exists with the right password and role
+      await ensureAdminUser();
+      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      if (error) throw new Error("تعذّر تسجيل الدخول، حاولي مرة أخرى");
       toast.success("أهلاً بيكي 🌟");
       navigate({ to: "/admin" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "كلمة المرور غير صحيحة");
+      toast.error(err instanceof Error ? err.message : "حدث خطأ");
     } finally {
       setBusy(false);
     }
