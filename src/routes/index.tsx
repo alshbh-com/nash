@@ -1,26 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/site/Header";
+import { Hero } from "@/components/site/Hero";
+import { Categories } from "@/components/site/Categories";
+import { PromoBanner } from "@/components/site/PromoBanner";
+import { ProductGrid } from "@/components/site/ProductGrid";
+import { Features } from "@/components/site/Features";
+import { Footer } from "@/components/site/Footer";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "ناصح Little Stars — ملابس أطفال فاخرة بألوان مرحة" },
+      { name: "description", content: "متجر ناصح لملابس الأطفال: تشكيلة مختارة من ملابس الأولاد والبنات والبيبي بخامات آمنة، دفع عند الاستلام، واستبدال خلال 15 يوم." },
+      { property: "og:title", content: "ناصح Little Stars — ملابس أطفال فاخرة" },
+      { property: "og:description", content: "ألبس صغيرك أحلى حاجة — ملابس أطفال بألوان مرحة وخامات آمنة." },
+      { property: "og:type", content: "website" },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <Hero />
+        <Categories />
+        <PromoBanner />
+        <ProductGrid />
+        <Features />
+      </main>
+      <Footer />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
