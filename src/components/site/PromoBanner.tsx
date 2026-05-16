@@ -11,7 +11,7 @@ export function PromoBanner() {
           </h3>
           <p className="text-navy/80 mb-5">على تشكيلة مختارة من فساتين وتيشيرتات الصيف لفترة محدودة.</p>
           <button className="bg-navy text-white px-6 py-3 rounded-2xl font-bold hover:scale-105 transition-transform shadow-soft">
-            تسوقي العرض
+            تسوّق العرض
           </button>
         </div>
       </div>

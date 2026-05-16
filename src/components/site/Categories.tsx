@@ -16,7 +16,7 @@ export function Categories() {
     <section id="categories" className="py-16">
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-navy">تصفحي الأقسام</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-navy">تصفّح الأقسام</h2>
           <p className="text-muted-foreground mt-2">كل اللي صغيرك محتاجه في مكان واحد ✨</p>
         </div>
 

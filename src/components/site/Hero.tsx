@@ -25,10 +25,10 @@ export function Hero() {
           </p>
           <div className="flex flex-wrap gap-3 justify-center md:justify-start">
             <a href="#products" className="bg-navy text-white px-7 py-4 rounded-2xl font-bold shadow-soft hover:shadow-hover hover:scale-105 transition-all">
-              تسوقي الآن 🛍️
+              تسوّق الآن 🛍️
             </a>
             <a href="#categories" className="bg-white/80 backdrop-blur text-navy px-7 py-4 rounded-2xl font-bold shadow-card hover:scale-105 transition-all">
-              تصفحي الأقسام
+              تصفّح الأقسام
             </a>
           </div>
 

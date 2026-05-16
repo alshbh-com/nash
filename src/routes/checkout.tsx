@@ -111,7 +111,7 @@ function CheckoutPage() {
             <label className="block text-sm font-bold text-navy mb-1.5">المحافظة *</label>
             <select required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })}
               className="w-full px-4 py-3 rounded-2xl border-2 border-border bg-white focus:border-pink outline-none">
-              <option value="">اختاري المحافظة</option>
+              <option value="">اختر المحافظة</option>
               {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
