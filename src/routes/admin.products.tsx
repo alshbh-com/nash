@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtEGP } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, ImagePlus } from "lucide-react";
 
 export const Route = createFileRoute("/admin/products")({ component: ProductsPage });
 
@@ -100,14 +100,29 @@ function ProductForm({ initial, onClose, onSaved }: { initial: ProductRow | null
     gender: initial?.gender ?? "unisex",
     badge: initial?.badge ?? "",
     images: initial?.images ?? [],
-    sizes: initial?.sizes?.join(",") ?? "0-3 شهور,3-6 شهور,6-12 شهور",
-    colors: initial?.colors?.join(",") ?? "#FFB6C1,#B5EAD7",
+    sizes: initial?.sizes ?? [],
+    colors: initial?.colors ?? [],
     short_description: initial?.short_description ?? "",
     description: initial?.description ?? "",
     active: initial?.active ?? true,
   });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [sizeInput, setSizeInput] = useState("");
+  const [colorInput, setColorInput] = useState("#FFB6C1");
+
+  const addSize = () => {
+    const v = sizeInput.trim();
+    if (!v || f.sizes.includes(v)) return;
+    setF((x) => ({ ...x, sizes: [...x.sizes, v] }));
+    setSizeInput("");
+  };
+  const removeSize = (s: string) => setF((x) => ({ ...x, sizes: x.sizes.filter((y) => y !== s) }));
+  const addColor = () => {
+    if (!colorInput || f.colors.includes(colorInput)) return;
+    setF((x) => ({ ...x, colors: [...x.colors, colorInput] }));
+  };
+  const removeColor = (c: string) => setF((x) => ({ ...x, colors: x.colors.filter((y) => y !== c) }));
 
   const uploadFiles = async (files: FileList) => {
     setUploading(true);
@@ -127,6 +142,7 @@ function ProductForm({ initial, onClose, onSaved }: { initial: ProductRow | null
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (f.images.length === 0) { toast.error("لازم تضيف صورة واحدة على الأقل"); return; }
     setBusy(true);
     const payload = {
       name: f.name,
@@ -138,8 +154,8 @@ function ProductForm({ initial, onClose, onSaved }: { initial: ProductRow | null
       gender: f.gender,
       badge: f.badge || null,
       images: f.images,
-      sizes: f.sizes.split(",").map((s) => s.trim()).filter(Boolean),
-      colors: f.colors.split(",").map((s) => s.trim()).filter(Boolean),
+      sizes: f.sizes,
+      colors: f.colors,
       short_description: f.short_description || null,
       description: f.description || null,
       active: f.active,
@@ -195,25 +211,78 @@ function ProductForm({ initial, onClose, onSaved }: { initial: ProductRow | null
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-xs font-bold text-navy mb-1">الصور</label>
-          <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && uploadFiles(e.target.files)}
-            className="w-full text-sm" />
-          {uploading && <div className="text-xs text-muted-foreground mt-1">جاري الرفع...</div>}
+          <label className="block text-sm font-bold text-navy mb-2">صور المنتج * <span className="text-xs font-normal text-muted-foreground">(اضغط على المربع لاختيار الصور)</span></label>
+          <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-pink rounded-2xl bg-pink/5 hover:bg-pink/10 cursor-pointer py-8 transition-colors">
+            <ImagePlus className="w-10 h-10 text-pink" />
+            <span className="text-sm font-bold text-navy">اضغط هنا لرفع الصور</span>
+            <span className="text-xs text-muted-foreground">JPG / PNG / WEBP — أكثر من صورة مسموح</span>
+            <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && uploadFiles(e.target.files)}
+              className="hidden" />
+          </label>
+          {uploading && <div className="text-xs text-pink font-bold mt-2 flex items-center gap-2"><Upload className="w-3 h-3 animate-pulse" /> جاري رفع الصور...</div>}
           {f.images.length > 0 && (
-            <div className="grid grid-cols-4 gap-2 mt-2">
+            <div className="grid grid-cols-4 gap-2 mt-3">
               {f.images.map((url, i) => (
                 <div key={i} className="relative aspect-square">
-                  <img src={url} alt="" className="w-full h-full object-cover rounded-lg" />
+                  <img src={url} alt="" className="w-full h-full object-cover rounded-lg border-2 border-border" />
                   <button type="button" onClick={() => setF({ ...f, images: f.images.filter((_, j) => j !== i) })}
-                    className="absolute top-1 right-1 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                    className="absolute -top-1 -right-1 bg-destructive text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow">×</button>
                 </div>
+              ))}
+            </div>
+          )}
+          {f.images.length === 0 && <div className="text-xs text-destructive mt-2">⚠️ لازم تضيف صورة واحدة على الأقل</div>}
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-bold text-navy mb-2">المقاسات</label>
+          <div className="flex gap-2">
+            <input value={sizeInput} onChange={(e) => setSizeInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }}
+              placeholder="مثال: 3-6 شهور"
+              className="flex-1 px-3 py-2 rounded-xl border-2 border-border bg-white text-sm" />
+            <button type="button" onClick={addSize}
+              className="bg-pink text-white px-4 py-2 rounded-xl font-bold inline-flex items-center gap-1">
+              <Plus className="w-4 h-4" /> إضافة
+            </button>
+          </div>
+          {f.sizes.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {f.sizes.map((s) => (
+                <span key={s} className="inline-flex items-center gap-1 bg-mint/40 text-navy px-3 py-1.5 rounded-full text-sm font-semibold">
+                  {s}
+                  <button type="button" onClick={() => removeSize(s)} className="text-destructive font-bold hover:scale-110">×</button>
+                </span>
               ))}
             </div>
           )}
         </div>
 
-        <Field label="المقاسات (مفصولة بفاصلة)" value={f.sizes} onChange={(v) => setF({ ...f, sizes: v })} />
-        <Field label="الألوان (هكس بفاصلة)" value={f.colors} onChange={(v) => setF({ ...f, colors: v })} />
+        <div className="md:col-span-2">
+          <label className="block text-sm font-bold text-navy mb-2">الألوان</label>
+          <div className="flex gap-2 items-center">
+            <input type="color" value={colorInput} onChange={(e) => setColorInput(e.target.value)}
+              className="w-14 h-11 rounded-xl border-2 border-border cursor-pointer bg-white" />
+            <input type="text" value={colorInput} onChange={(e) => setColorInput(e.target.value)}
+              placeholder="#FFB6C1"
+              className="flex-1 px-3 py-2 rounded-xl border-2 border-border bg-white text-sm font-mono" />
+            <button type="button" onClick={addColor}
+              className="bg-pink text-white px-4 py-2 rounded-xl font-bold inline-flex items-center gap-1">
+              <Plus className="w-4 h-4" /> إضافة
+            </button>
+          </div>
+          {f.colors.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {f.colors.map((c) => (
+                <span key={c} className="inline-flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full text-xs font-semibold">
+                  <span className="w-5 h-5 rounded-full border-2 border-white shadow" style={{ backgroundColor: c }} />
+                  {c}
+                  <button type="button" onClick={() => removeColor(c)} className="text-destructive font-bold hover:scale-110">×</button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="md:col-span-2">
           <label className="block text-xs font-bold text-navy mb-1">وصف قصير</label>

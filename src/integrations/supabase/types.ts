@@ -295,6 +295,24 @@ export type Database = {
     }
     Functions: {
       bootstrap_admin: { Args: never; Returns: boolean }
+      create_order_with_items: {
+        Args: {
+          _address: string
+          _coupon_code: string
+          _customer_name: string
+          _discount: number
+          _governorate: string
+          _items: Json
+          _notes: string
+          _phone: string
+          _shipping_cost: number
+          _subtotal: number
+          _total: number
+        }
+        Returns: {
+          order_number: string
+        }[]
+      }
       get_order_public: {
         Args: { _order_number: string }
         Returns: {
